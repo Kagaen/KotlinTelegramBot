@@ -22,7 +22,7 @@ fun main() {
                 continue
             }
 
-            "0" -> break
+            "0" -> return
             else -> {
                 println("Введите номер действия")
                 continue
@@ -38,7 +38,7 @@ data class Word(
 )
 
 fun loadDictionary(): MutableList<Word> {
-    val wordsFile = File("1words.txt")
+    val wordsFile = File("words.txt")
     val dictionary = mutableListOf<Word>()
     try {
         val stringList = wordsFile.readLines()

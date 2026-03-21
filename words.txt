@@ -1,4 +1,4 @@
-hello привет
-dog собака
-cat кошка
-honey мёд
+hello|привет|
+dog|собака|0
+cat|кошка|4
+honey|мёд|2

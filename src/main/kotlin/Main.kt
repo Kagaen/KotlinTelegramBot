@@ -1,21 +1,34 @@
 import java.io.File
 
 fun main() {
+    val dictionary = loadDictionary()
+    while (true) {
+        println(
+            """
+                
+    1. Учить слова 
+    2. Статистика
+    0. Выход
+""".trimIndent()
+        )
+        when (readln().trim()) {
+            "1" -> {
+                println("Учим слова...")
+                continue
+            }
 
-    val wordsFile: File = File("words.txt")
-    val dictionary = mutableListOf<Word>()
-    try {
-        val stringList = wordsFile.readLines()
-        stringList.forEach {
-            val split = it.split("|")
-            val line: Word = Word(split[0], split[1], split[2].toIntOrNull() ?: 0)
-            dictionary.add(line)
+            "2" -> {
+                println("Ваши успехи:")
+                continue
+            }
+
+            "0" -> break
+            else -> {
+                println("Введите номер действия")
+                continue
+            }
         }
-        dictionary.forEach { line -> println(line) }
-    } catch (e: Exception) {
-        println("Ошибка: ${e.message}")
     }
-
 }
 
 data class Word(
@@ -24,3 +37,18 @@ data class Word(
     val correctAnswersCount: Int,
 )
 
+fun loadDictionary(): MutableList<Word> {
+    val wordsFile = File("1words.txt")
+    val dictionary = mutableListOf<Word>()
+    try {
+        val stringList = wordsFile.readLines()
+        stringList.forEach {
+            val split = it.split("|")
+            val line = Word(split[0], split[1], split[2].toIntOrNull() ?: 0)
+            dictionary.add(line)
+        }
+    } catch (e: Exception) {
+        println("Ошибка: ${e.message}")
+    }
+    return dictionary
+}

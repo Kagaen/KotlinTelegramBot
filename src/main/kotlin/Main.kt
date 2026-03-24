@@ -1,30 +1,35 @@
 import java.io.File
 
+const val MIN_LEARNED_COUNT = 3
+const val DICTIONARY_NAME = "words.txt"
+
 fun main() {
-    val dictionary = loadDictionary()
+    val dictionary: MutableList<Word> = loadDictionary()
+    val wordsTotalCount: Int = dictionary.size
     while (true) {
         println(
-            """
-                
-    1. Учить слова 
-    2. Статистика
-    0. Выход
-""".trimIndent()
+            """             
+        1. Учить слова 
+        2. Статистика
+        0. Выход
+        """.trimIndent()
         )
         when (readln().trim()) {
             "1" -> {
-                println("Учим слова...")
+                println("Учим слова...\n")
                 continue
             }
 
             "2" -> {
-                println("Ваши успехи:")
+                val learnedCount = dictionary.filter { it.correctAnswersCount >= MIN_LEARNED_COUNT }.size
+                val percent = if (wordsTotalCount > 0) learnedCount * 100 / wordsTotalCount else 0
+                println("Выучено $learnedCount из $wordsTotalCount | $percent%\n")
                 continue
             }
 
             "0" -> return
             else -> {
-                println("Введите номер действия")
+                println("Введите номер действия\n")
                 continue
             }
         }
@@ -39,7 +44,7 @@ data class Word(
 )
 
 fun loadDictionary(): MutableList<Word> {
-    val wordsFile = File("words.txt")
+    val wordsFile = File(DICTIONARY_NAME)
     val dictionary = mutableListOf<Word>()
     try {
         val stringList = wordsFile.readLines()

@@ -16,8 +16,29 @@ fun main() {
         )
         when (readln().trim()) {
             "1" -> {
-                println("Учим слова...\n")
-                continue
+                outer@ while (true) {
+                    val notLearnedList = dictionary.filter { it.correctAnswersCount < MIN_LEARNED_COUNT }
+
+                    if (notLearnedList.isEmpty()) {
+                        println("Все слова в словаре выучены\n")
+                        break
+                    }
+
+                    val questionWords = notLearnedList.shuffled().take(4)
+                    val correctAnswer = (0..<questionWords.size).random()
+                    val askWord = questionWords[correctAnswer]
+
+                    while (true) {
+                        println("\n${askWord.original}:")
+                        questionWords.forEachIndexed { index, word -> println(" ${index + 1}. ${word.translate}") }
+                        try {
+                            val userAnswerInput = readln().trim().toInt()
+                            break@outer
+                        } catch (e: Exception) {
+                            println("Ошибка: ${e.message}")
+                        }
+                    }
+                }
             }
 
             "2" -> {
@@ -28,6 +49,7 @@ fun main() {
             }
 
             "0" -> return
+
             else -> {
                 println("Введите номер действия\n")
                 continue
@@ -40,7 +62,7 @@ fun main() {
 data class Word(
     val original: String,
     val translate: String,
-    val correctAnswersCount: Int,
+    var correctAnswersCount: Int,
 )
 
 fun loadDictionary(): MutableList<Word> {

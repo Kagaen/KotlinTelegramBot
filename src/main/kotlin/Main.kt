@@ -2,6 +2,7 @@ import java.io.File
 
 const val MIN_LEARNED_COUNT = 3
 const val DICTIONARY_NAME = "words.txt"
+const val CHOICE_COUNT = 4
 
 fun main() {
     val dictionary: MutableList<Word> = loadDictionary()
@@ -24,18 +25,40 @@ fun main() {
                         break
                     }
 
-                    val questionWords = notLearnedList.shuffled().take(4)
+                    val questionWords = notLearnedList.shuffled().take(CHOICE_COUNT)
                     val correctAnswer = (0..<questionWords.size).random()
+                    val correctAnswerId = correctAnswer + 1
                     val askWord = questionWords[correctAnswer]
 
                     while (true) {
                         println("\n${askWord.original}:")
                         questionWords.forEachIndexed { index, word -> println(" ${index + 1}. ${word.translate}") }
+                        println(" ----------\n 0 - Меню")
+
                         try {
                             val userAnswerInput = readln().trim().toInt()
-                            break@outer
-                        } catch (e: Exception) {
-                            println("Ошибка: ${e.message}")
+                            when (userAnswerInput) {
+                                !in 0..questionWords.size -> {
+                                    println("Выберите вариант ответа")
+                                    continue
+                                }
+
+                                correctAnswerId -> {
+                                    println("Правильно!")
+                                    askWord.correctAnswersCount++
+                                    saveDictionary(dictionary)
+                                    continue@outer
+                                }
+
+                                0 -> break@outer
+
+                                else -> {
+                                    println("Неправильно! ${askWord.original} - это ${askWord.translate}")
+                                    continue@outer
+                                }
+                            }
+                        } catch (_: Exception) {
+                            println("Выберите вариант ответа")
                         }
                     }
                 }
@@ -79,4 +102,9 @@ fun loadDictionary(): MutableList<Word> {
         println("Ошибка: ${e.message}")
     }
     return dictionary
+}
+
+fun saveDictionary(dictionary: MutableList<Word>) {
+    val wordsFile = File(DICTIONARY_NAME)
+    wordsFile.writeText(dictionary.joinToString("\n") { "${it.original}|${it.translate}|${it.correctAnswersCount}" })
 }

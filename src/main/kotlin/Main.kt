@@ -42,13 +42,16 @@ fun main() {
                                     println("Выберите вариант ответа")
                                     continue
                                 }
+
                                 correctAnswerId -> {
                                     println("Правильно!")
                                     askWord.correctAnswersCount++
                                     saveDictionary(dictionary)
                                     continue@outer
                                 }
+
                                 0 -> break@outer
+
                                 else -> {
                                     println("Неправильно! ${askWord.original} - это ${askWord.translate}")
                                     continue@outer
@@ -103,8 +106,5 @@ fun loadDictionary(): MutableList<Word> {
 
 fun saveDictionary(dictionary: MutableList<Word>) {
     val wordsFile = File(DICTIONARY_NAME)
-    wordsFile.writeText("")
-    dictionary.forEach {
-        wordsFile.appendText("${it.original}|${it.translate}|${it.correctAnswersCount}\n")
-    }
+    wordsFile.writeText(dictionary.joinToString("\n") { "${it.original}|${it.translate}|${it.correctAnswersCount}" })
 }

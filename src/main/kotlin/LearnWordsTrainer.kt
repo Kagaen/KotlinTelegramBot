@@ -24,8 +24,7 @@ data class Statistics(
 class LearnWordsTrainer {
 
     private var question: Question? = null
-    val dictionary: MutableList<Word> = loadDictionary()
-
+    private val dictionary: MutableList<Word> = loadDictionary()
 
     fun getStatistics(): Statistics {
         val wordsTotalCount = dictionary.size

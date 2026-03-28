@@ -27,8 +27,8 @@ fun main() {
                                 println("Неправильно! ${question.correctWord.original} - это ${question.correctWord.translate}")
                                 continue@outer
                             }
-                        } catch (e: Exception) {
-                            println(e.message)
+                        } catch (_: Exception) {
+                            println("Выберите вариант ответа")
                         }
                     }
                 }

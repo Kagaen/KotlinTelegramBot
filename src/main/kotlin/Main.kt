@@ -1,6 +1,12 @@
 fun main() {
 
-    val trainer = LearnWordsTrainer()
+    val trainer = try {
+        LearnWordsTrainer()
+    } catch (e: Exception) {
+        println("Ошибка: ${e.message}")
+        return
+    }
+
     while (true) {
         println("1.Учить слова\n2.Статистика\n0.Выход")
         when (readln().trim()) {

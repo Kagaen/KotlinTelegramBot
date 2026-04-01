@@ -11,11 +11,11 @@ fun main(args: Array<String>) {
 
     val client: HttpClient = HttpClient.newBuilder().build()
 
-    val requestMe: HttpRequest? = HttpRequest.newBuilder().uri(URI.create(urlGetMe)).build()
-    val responseMe: HttpResponse<String?>? = client.send(requestMe, HttpResponse.BodyHandlers.ofString())
+    val requestMe: HttpRequest = HttpRequest.newBuilder().uri(URI.create(urlGetMe)).build()
+    val responseMe: HttpResponse<String> = client.send(requestMe, HttpResponse.BodyHandlers.ofString())
 
-    val requestUpdates: HttpRequest? = HttpRequest.newBuilder().uri(URI.create(urlGetUpdates)).build()
-    val responseUpdates: HttpResponse<String?>? = client.send(requestUpdates, HttpResponse.BodyHandlers.ofString())
-    println(responseMe?.body() + "\n\n" + responseUpdates?.body())
+    val requestUpdates: HttpRequest = HttpRequest.newBuilder().uri(URI.create(urlGetUpdates)).build()
+    val responseUpdates: HttpResponse<String> = client.send(requestUpdates, HttpResponse.BodyHandlers.ofString())
+    println(responseMe.body() + "\n\n" + responseUpdates.body())
 
 }

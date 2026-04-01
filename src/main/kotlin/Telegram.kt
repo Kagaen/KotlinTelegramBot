@@ -1,0 +1,23 @@
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+
+const val URL = "https://api.telegram.org/bot"
+
+fun main(args: Array<String>) {
+
+    val botToken = if (args.isNotEmpty()) args[0] else ""
+    val urlGetMe = "$URL$botToken/getMe"
+    val urlGetUpdates = "$URL$botToken/getUpdates"
+
+    val client: HttpClient = HttpClient.newBuilder().build()
+
+    val requestMe: HttpRequest = HttpRequest.newBuilder().uri(URI.create(urlGetMe)).build()
+    val responseMe: HttpResponse<String> = client.send(requestMe, HttpResponse.BodyHandlers.ofString())
+
+    val requestUpdates: HttpRequest = HttpRequest.newBuilder().uri(URI.create(urlGetUpdates)).build()
+    val responseUpdates: HttpResponse<String> = client.send(requestUpdates, HttpResponse.BodyHandlers.ofString())
+    println(responseMe.body() + "\n\n" + responseUpdates.body())
+
+}

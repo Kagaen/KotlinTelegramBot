@@ -14,10 +14,10 @@ fun main(args: Array<String>) {
         val updates: String = getUpdates(botToken, updatesId)
         println(updates)
 
-        val startUpdateId = updates.lastIndexOf("update_id") + 11
-        val endUpdateId = updates.lastIndexOf(",\n\"message\"")
+        val startUpdateId = updates.lastIndexOf("update_id")
+        val endUpdateId = updates.indexOf(",", startUpdateId)
         if (startUpdateId == -1 || endUpdateId == -1) continue
-        val updateIdString = updates.substring(startUpdateId, endUpdateId)
+        val updateIdString = updates.substring(startUpdateId + 11, endUpdateId)
         println(updateIdString)
         updatesId = updateIdString.toInt() + 1
     }

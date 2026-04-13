@@ -10,16 +10,20 @@ fun main(args: Array<String>) {
     val botToken = if (args.isNotEmpty()) args[0] else ""
     var updatesId = 0
     val updateIdRegex: Regex = "\"update_id\":\\s*(\\d+)".toRegex()
+    val textRegex: Regex = "\"text\":\"([^\"]+)\"".toRegex()
     while (true) {
         Thread.sleep(2000)
         val updates: String = getUpdates(botToken, updatesId)
         println(updates)
 
-        val matchResult: Sequence<MatchResult> = updateIdRegex.findAll(updates)
-        val updateIdStr: String? = matchResult.lastOrNull()?.groups[1]?.value
-        println(updateIdStr)
+        val updateIdMatchResult: Sequence<MatchResult> = updateIdRegex.findAll(updates)
+        val updateIdString: String? = updateIdMatchResult.lastOrNull()?.groupValues[1]
+        val textMatchResult: MatchResult? = textRegex.find(updates)
+        val text = textMatchResult?.groupValues[1]
+        println(text)
+        println(updateIdString+"\n")
 
-        updateIdStr?.toInt()?.let { updatesId = it + 1 }
+        updateIdString?.toInt()?.let { updatesId = it + 1 }
     }
 }
 

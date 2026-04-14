@@ -9,17 +9,21 @@ fun main(args: Array<String>) {
 
     val botToken = if (args.isNotEmpty()) args[0] else ""
     var updatesId = 0
+    val updateIdRegex: Regex = "\"update_id\":\\s*(\\d+)".toRegex()
+    val textRegex: Regex = "\"text\":\"([^\"]+)\"".toRegex()
     while (true) {
         Thread.sleep(2000)
         val updates: String = getUpdates(botToken, updatesId)
         println(updates)
 
-        val startUpdateId = updates.lastIndexOf("update_id")
-        val endUpdateId = updates.indexOf(",", startUpdateId)
-        if (startUpdateId == -1 || endUpdateId == -1) continue
-        val updateIdString = updates.substring(startUpdateId + 11, endUpdateId)
-        println(updateIdString)
-        updatesId = updateIdString.toInt() + 1
+        val updateIdMatchResult: Sequence<MatchResult> = updateIdRegex.findAll(updates)
+        val updateIdString: String? = updateIdMatchResult.lastOrNull()?.groupValues[1]
+        val textMatchResult: MatchResult? = textRegex.find(updates)
+        val text = textMatchResult?.groupValues[1]
+        println(text)
+        println(updateIdString+"\n")
+
+        updateIdString?.toInt()?.let { updatesId = it + 1 }
     }
 }
 

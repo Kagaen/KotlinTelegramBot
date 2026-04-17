@@ -40,10 +40,6 @@ class TelegramBotService(
             				{
             				   "text": "Статистика",
             					"callback_data": "statistics_clicked"
-            				},
-            				{
-            				   "text": "Выход",
-            					"callback_data": "statistics_clicked"
             				}
             			]
             		]

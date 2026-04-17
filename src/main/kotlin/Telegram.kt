@@ -1,3 +1,6 @@
+const val STAT_CLICK = "statistics_clicked"
+const val LEARN_CLICK = "learn_words_clicked"
+
 fun main(args: Array<String>) {
 
     val botToken = if (args.isNotEmpty()) args[0] else ""
@@ -19,14 +22,13 @@ fun main(args: Array<String>) {
         val chatId = chatIdRegex.find(updates)?.groupValues[1]
         val data = dataRegex.find(updates)?.groupValues[1]
 
-        println(text)
-        println(data)
-
         updateId?.toInt()?.let { lastUpdateId = it + 1 }
 
-        if (text?.lowercase() == "hello" && chatId != null) service.sendMessage(chatId, "привет")
         if (text?.lowercase() == "/start" && chatId != null) service.sendMenu(chatId)
-        if (data == "statistics_clicked" && chatId != null) service.sendMessage(chatId, "Выучено 4 слов из 4 | 100%")
+        if (data == STAT_CLICK && chatId != null) {
+            val statistics = trainer.getStatistics()
+            service.sendMessage(chatId, "Выучено ${statistics.learnedCount} из ${statistics.wordsTotalCount} | ${statistics.percent}%")
+        }
     }
 }
 

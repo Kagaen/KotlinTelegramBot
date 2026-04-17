@@ -35,11 +35,11 @@ class TelegramBotService(
             			[
             				{
             				   "text": "Учить слова",
-            					"callback_data": "learn_words_clicked"
+            					"callback_data": "$LEARN_CLICK"
             				},
             				{
             				   "text": "Статистика",
-            					"callback_data": "statistics_clicked"
+            					"callback_data": "$STAT_CLICK"
             				}
             			]
             		]

@@ -18,7 +18,7 @@ class TelegramBotService(
     }
 
     fun sendMessage(chatId: String, text: String): String {
-        val urlSendMessage = "$url$botToken/sendMessage?chat_id=$chatId&text=${URLEncoder.encode(text, "UTF-8") }"
+        val urlSendMessage = "$url$botToken/sendMessage?chat_id=$chatId&text=${URLEncoder.encode(text, "UTF-8")}"
         val request: HttpRequest = HttpRequest.newBuilder().uri(URI.create(urlSendMessage)).build()
         val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
         return response.body()
@@ -35,15 +35,11 @@ class TelegramBotService(
             			[
             				{
             				   "text": "Учить слова",
-            					"callback_data": "learn_words_clicked"
+            					"callback_data": "$LEARN_CLICK"
             				},
             				{
             				   "text": "Статистика",
-            					"callback_data": "statistics_clicked"
-            				},
-            				{
-            				   "text": "Выход",
-            					"callback_data": "statistics_clicked"
+            					"callback_data": "$STAT_CLICK"
             				}
             			]
             		]
@@ -54,6 +50,39 @@ class TelegramBotService(
         val request: HttpRequest = HttpRequest.newBuilder().uri(URI.create(urlSendMessage))
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(sendMenuBody))
+            .build()
+        val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
+        return response.body()
+    }
+
+    fun sendQuestion(chatId: String, question: Question): String {
+        val urlSendMessage = "$url$botToken/sendMessage"
+        val variants = question.variants.mapIndexed { index, word ->
+            """
+                {
+            		"text": "${word.translate}",
+            		"callback_data": "$CALLBACK_DATA_ANSWER_PREFIX${index + 1}"
+            	}
+            """.trimIndent()
+        }.joinToString(",")
+
+        val sendQuestionBody = """
+            {
+            	"chat_id": $chatId,
+            	"text": "${question.correctWord.original}",
+            	"reply_markup": {
+            		"inline_keyboard": [
+            			[
+            				$variants
+            			]
+            		]
+            	}
+            }
+        """.trimIndent()
+
+        val request: HttpRequest = HttpRequest.newBuilder().uri(URI.create(urlSendMessage))
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(sendQuestionBody))
             .build()
         val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
         return response.body()

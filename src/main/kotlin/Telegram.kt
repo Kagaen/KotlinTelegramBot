@@ -26,15 +26,49 @@ fun main(args: Array<String>) {
 
         updateId?.toInt()?.let { lastUpdateId = it + 1 }
 
-        if (text?.lowercase() == "/start" && chatId != null) service.sendMenu(chatId)
-        if (data == STAT_CLICK && chatId != null) {
-            val statistics = trainer.getStatistics()
-            service.sendMessage(
-                chatId,
-                "Выучено ${statistics.learnedCount} из ${statistics.wordsTotalCount} | ${statistics.percent}%"
-            )
+        if (chatId != null) {
+            when {
+                text?.lowercase() == "/start" -> service.sendMenu(chatId)
+
+                data == STAT_CLICK -> {
+                    val statistics = trainer.getStatistics()
+                    service.sendMessage(
+                        chatId,
+                        "Выучено ${statistics.learnedCount} из ${statistics.wordsTotalCount} | ${statistics.percent}%"
+                    )
+                }
+
+                data == LEARN_CLICK -> checkNextQuestionAndSend(
+                    trainer,
+                    service,
+                    chatId
+                )
+
+                data != null && data.startsWith(CALLBACK_DATA_ANSWER_PREFIX) -> {
+                    trainer.question?.let {
+                        val userAnswerInput: Int = data.substringAfter(CALLBACK_DATA_ANSWER_PREFIX).toInt()
+                        if (trainer.checkAnswer(userAnswerInput)) {
+                            service.sendMessage(chatId, "Правильно!")
+                            checkNextQuestionAndSend(
+                                trainer,
+                                service,
+                                chatId
+                            )
+                        } else {
+                            service.sendMessage(
+                                chatId,
+                                "Неправильно! ${it.correctWord.original} - это ${it.correctWord.translate}"
+                            )
+                            checkNextQuestionAndSend(
+                                trainer,
+                                service,
+                                chatId
+                            )
+                        }
+                    }
+                }
+            }
         }
-        if (data == LEARN_CLICK && chatId != null) checkNextQuestionAndSend(trainer, service, chatId)
     }
 }
 

@@ -23,7 +23,8 @@ class LearnWordsTrainer(
     private val dictionaryName: String = "words.txt",
 ) {
 
-    private var question: Question? = null
+    var question: Question? = null
+        private set
     private val dictionary: MutableList<Word> = loadDictionary()
 
     fun getStatistics(): Statistics {

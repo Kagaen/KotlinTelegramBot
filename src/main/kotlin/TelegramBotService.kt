@@ -61,7 +61,7 @@ class TelegramBotService(
             """
                 {
             		"text": "${word.translate}",
-            		"callback_data": "$CALLBACK_DATA_ANSWER_PREFIX${index + 1}"
+            		"callback_data": "$CALLBACK_DATA_ANSWER_PREFIX$index"
             	}
             """.trimIndent()
         }.joinToString(",")

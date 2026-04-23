@@ -19,7 +19,7 @@ class TelegramBotService(
     }
 
     fun sendMessage(json: Json, chatId: Long, text: String): String {
-        val urlSendMessage = "$url$botToken/sendMessage?chat_id=$chatId&text=${URLEncoder.encode(text, "UTF-8")}"
+        val urlSendMessage = "$url$botToken/sendMessage"
         val requestBody = SendMessageRequest(
             chatId = chatId,
             text = text,

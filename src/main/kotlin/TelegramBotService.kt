@@ -1,6 +1,5 @@
 import kotlinx.serialization.json.Json
 import java.net.URI
-import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
@@ -33,17 +32,20 @@ class TelegramBotService(
         return response.body()
     }
 
-    fun sendMenu(json: Json, chatId: Long): String? {
+    fun sendMenu(json: Json, chatId: Long): String {
         val urlSendMessage = "$url$botToken/sendMessage"
         val requestBody = SendMessageRequest(
             chatId = chatId,
             text = "Основное меню",
             replyMarkup = ReplyMarkup(
                 inlineKeyboard = listOf(
-                    element = listOf(
-                        InlineKeyboard(text = "Учить слова", callbackData = LEARN_CLICK),
-                        InlineKeyboard(text = "Статистика", callbackData = STAT_CLICK),
-                    )
+                    listOf(
+                        Button(text = "Учить слова", callbackData = LEARN_CLICK),
+                        Button(text = "Статистика", callbackData = STAT_CLICK),
+                    ),
+                    listOf(
+                        Button(text = "Сбросить прогресс", callbackData = RESET_CLICK)
+                    ),
                 )
             )
         )
@@ -56,16 +58,19 @@ class TelegramBotService(
         return response.body()
     }
 
-    fun sendQuestion(json: Json,  chatId: Long, question: Question): String {
+    fun sendQuestion(json: Json, chatId: Long, question: Question): String {
         val urlSendMessage = "$url$botToken/sendMessage"
         val requestBody = SendMessageRequest(
             chatId = chatId,
             text = question.correctWord.original,
             replyMarkup = ReplyMarkup(
                 inlineKeyboard = listOf(
-                    element = question.variants.mapIndexed { index, word ->
-                        InlineKeyboard(text = word.translate, callbackData = "$CALLBACK_DATA_ANSWER_PREFIX$index")
-                    }
+                    question.variants.mapIndexed { index, word ->
+                        Button(text = word.translate, callbackData = "$CALLBACK_DATA_ANSWER_PREFIX$index")
+                    },
+                    listOf(
+                        Button(text = "Вернуться в меню", callbackData = RETURN_CLICK)
+                    ),
                 )
             )
         )

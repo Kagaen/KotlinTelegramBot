@@ -1,9 +1,12 @@
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.util.concurrent.ConcurrentHashMap
 
 const val STAT_CLICK = "statistics_clicked"
 const val LEARN_CLICK = "learn_words_clicked"
+const val RETURN_CLICK = "return_clicked"
+const val RESET_CLICK = "reset_clicked"
 const val CALLBACK_DATA_ANSWER_PREFIX = "answer_"
 
 @Serializable
@@ -57,11 +60,11 @@ data class SendMessageRequest(
 @Serializable
 data class ReplyMarkup(
     @SerialName("inline_keyboard")
-    val inlineKeyboard: List<List<InlineKeyboard>>,
+    val inlineKeyboard: List<List<Button>>,
 )
 
 @Serializable
-data class InlineKeyboard(
+data class Button(
     @SerialName("text")
     val text: String,
     @SerialName("callback_data")
@@ -72,12 +75,9 @@ fun main(args: Array<String>) {
 
     val botToken = if (args.isNotEmpty()) args[0] else ""
     val service = TelegramBotService(botToken)
-    val trainer = LearnWordsTrainer()
     var lastUpdateId = 0L
-
-    val json = Json {
-        ignoreUnknownKeys = true
-    }
+    val json = Json { ignoreUnknownKeys = true }
+    val trainers = ConcurrentHashMap<Long, LearnWordsTrainer>()
 
     while (true) {
         Thread.sleep(2000)
@@ -85,48 +85,48 @@ fun main(args: Array<String>) {
         println(responseString)
 
         val response: Response = json.decodeFromString<Response>(responseString)
-        val updates = response.result
-        val firstUpdate: Update = updates.firstOrNull() ?: continue
-        val updateId: Long = firstUpdate.updateId
-        lastUpdateId = updateId + 1
+        if (response.result.isEmpty()) continue
+        val sortUpdates = response.result.sortedBy { it.updateId }
+        sortUpdates.forEach { handleUpdate(it, json, service, trainers) }
+        lastUpdateId = sortUpdates.last().updateId + 1
+    }
+}
 
-        val text = firstUpdate.message?.text
-        val chatId = firstUpdate.message?.chat?.id ?: firstUpdate.callbackQuery?.message?.chat?.id
-        val data = firstUpdate.callbackQuery?.data
+fun handleUpdate(update: Update, json: Json, service: TelegramBotService, trainers: ConcurrentHashMap<Long, LearnWordsTrainer>) {
 
+    val text = update.message?.text
+    val chatId = update.message?.chat?.id ?: update.callbackQuery?.message?.chat?.id ?: return
+    val data = update.callbackQuery?.data
+    val trainer = trainers.getOrPut(chatId) { LearnWordsTrainer("$chatId.txt") }
 
-        if (chatId != null) {
-            when {
-                text?.lowercase() == "/start" -> service.sendMenu(json, chatId)
+    when {
+        text?.lowercase() == "/start" || data == RETURN_CLICK -> service.sendMenu(json, chatId)
 
-                data == STAT_CLICK -> {
-                    val statistics = trainer.getStatistics()
-                    service.sendMessage(
-                        json,
-                        chatId,
-                        "Выучено ${statistics.learnedCount} из ${statistics.wordsTotalCount} | ${statistics.percent}%"
-                    )
-                }
+        data == STAT_CLICK -> {
+            val statistics = trainer.getStatistics()
+            service.sendMessage(
+                json,
+                chatId,
+                "Выучено ${statistics.learnedCount} из ${statistics.wordsTotalCount} | ${statistics.percent}%"
+            )
+        }
 
-                data == LEARN_CLICK -> checkNextQuestionAndSend(json, trainer, service, chatId)
+        data == LEARN_CLICK -> checkNextQuestionAndSend(json, trainer, service, chatId)
 
-                data != null && data.startsWith(CALLBACK_DATA_ANSWER_PREFIX) -> {
-                    trainer.question?.let {
-                        val userAnswerInput: Int = data.substringAfter(CALLBACK_DATA_ANSWER_PREFIX).toInt()
-                        if (trainer.checkAnswer(userAnswerInput)) {
-                            service.sendMessage(json, chatId, "Правильно!")
-                            checkNextQuestionAndSend(json, trainer, service, chatId)
-                        } else {
-                            service.sendMessage(
-                                json,
-                                chatId,
-                                "Неправильно! ${it.correctWord.original} - это ${it.correctWord.translate}"
-                            )
-                            checkNextQuestionAndSend(json, trainer, service, chatId)
-                        }
-                    }
-                }
-            }
+        data?.startsWith(CALLBACK_DATA_ANSWER_PREFIX) == true -> {
+            val userAnswerInput: Int = data.substringAfter(CALLBACK_DATA_ANSWER_PREFIX).toInt()
+            if (trainer.checkAnswer(userAnswerInput)) service.sendMessage(json, chatId, "Правильно!")
+            else service.sendMessage(
+                json,
+                chatId,
+                "Неправильно! ${trainer.question?.correctWord?.original} - это ${trainer.question?.correctWord?.translate}"
+            )
+            checkNextQuestionAndSend(json, trainer, service, chatId)
+        }
+
+        data == RESET_CLICK -> {
+            trainer.resetProgress()
+            service.sendMessage(json, chatId, "Прогресс сброшен")
         }
     }
 }
@@ -138,8 +138,10 @@ fun checkNextQuestionAndSend(
     chatId: Long,
 ): String {
     val question: Question? = trainer.getNewQuestion()
-    return if (question == null) service.sendMessage(json, chatId, "Все слова в словаре выучены")
-    else service.sendQuestion(json, chatId, question)
+    return if (question == null) {
+        service.sendMessage(json, chatId, "Все слова в словаре выучены")
+        service.sendMenu(json, chatId)
+    } else service.sendQuestion(json, chatId, question)
 }
 
 

@@ -1,6 +1,7 @@
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.util.concurrent.ConcurrentHashMap
 
 const val STAT_CLICK = "statistics_clicked"
 const val LEARN_CLICK = "learn_words_clicked"
@@ -76,7 +77,7 @@ fun main(args: Array<String>) {
     val service = TelegramBotService(botToken)
     var lastUpdateId = 0L
     val json = Json { ignoreUnknownKeys = true }
-    val trainers = HashMap<Long, LearnWordsTrainer>()
+    val trainers = ConcurrentHashMap<Long, LearnWordsTrainer>()
 
     while (true) {
         Thread.sleep(2000)
@@ -91,7 +92,7 @@ fun main(args: Array<String>) {
     }
 }
 
-fun handleUpdate(update: Update, json: Json, service: TelegramBotService, trainers: HashMap<Long, LearnWordsTrainer>) {
+fun handleUpdate(update: Update, json: Json, service: TelegramBotService, trainers: ConcurrentHashMap<Long, LearnWordsTrainer>) {
 
     val text = update.message?.text
     val chatId = update.message?.chat?.id ?: update.callbackQuery?.message?.chat?.id ?: return
@@ -137,8 +138,10 @@ fun checkNextQuestionAndSend(
     chatId: Long,
 ): String {
     val question: Question? = trainer.getNewQuestion()
-    return if (question == null) service.sendMessage(json, chatId, "Все слова в словаре выучены")
-    else service.sendQuestion(json, chatId, question)
+    return if (question == null) {
+        service.sendMessage(json, chatId, "Все слова в словаре выучены")
+        service.sendMenu(json, chatId)
+    } else service.sendQuestion(json, chatId, question)
 }
 
 
